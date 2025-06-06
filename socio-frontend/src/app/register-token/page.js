@@ -20,8 +20,11 @@ export default function RegisterTokenPage() {
     if (token) {
       loginWithToken(token, { email, name, role });
       router.replace(DASHBOARD_PATH);
+      // fallback for environments where Next router may not redirect
+      window.location.replace(DASHBOARD_PATH);
     } else {
       router.replace('/login');
+      window.location.replace('/login');
     }
   }, [searchParams, loginWithToken, router]);
 
