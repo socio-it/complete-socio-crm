@@ -90,7 +90,7 @@ const Login = () => {
                       </Stack>
                     </Grid>
                     <Grid item xs={12}>
-                      <AuthLogin loginProp={2} />
+                      <AuthLogin />
                     </Grid>
                     <Grid item xs={12}>
                       <Divider />
