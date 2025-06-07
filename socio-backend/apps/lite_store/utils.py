@@ -234,13 +234,13 @@ def take_information(url: str):
             "publicaciones": html2text(raw["publicaciones_html"])[:1000],
         }
 
-        print("Perfil limpio:", perfil_limpio)
+        #print("Perfil limpio:", perfil_limpio)
 
         # 7) Guardar limpio en BASE_DIR y borrar RAW ----------------------------
         CLEAN_PATH.write_text(json.dumps(perfil_limpio, ensure_ascii=False, indent=2), encoding="utf-8")
         RAW_PATH.unlink(missing_ok=True)  # elimina el raw
         print(f"📝 Limpio escrito en {CLEAN_PATH.relative_to(BASE_DIR)}")
-
+        return perfil_limpio
     except Exception as e:  # noqa: BLE001
         print("🚨 Excepción general:", e)
         traceback.print_exc()
