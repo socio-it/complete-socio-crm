@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.microsoft',
     'apps.accounts',
+    'apps.lite_store',
+    'apps.contacts',
 ]
 
 AUTH_ADFS = {
