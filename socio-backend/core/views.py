@@ -1,43 +1,27 @@
-import requests
-from django.conf import settings
 from urllib.parse import urlencode
 from django.http import JsonResponse
 from django.shortcuts import redirect
-
-# === FUNCION PARA OBTENER TOKEN DE CLIENTE (client_credentials) ===
-def get_access_token():
-    try:
-        url = settings.AD_URL
-        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-        data = {
-            'grant_type': 'client_credentials',
-            'client_id': settings.CLIENT_ID,
-            'client_secret': settings.SECRET_ID,
-            'scope': 'https://graph.microsoft.com/.default'
-        }
-        response = requests.post(url=url, headers=headers, data=data)
-        json_response = response.json()
-        return json_response
-    except:
-        return None
+from rest_framework_simplejwt.tokens import RefreshToken
 
 # === LOGIN SUCCESSFUL ===
 
 def login_successful(request):
-    access_token = get_access_token().get("access_token")
-    if not access_token:
-        return JsonResponse({"error": "No access token"}, status=401)
+    """Redirects the authenticated user back to the frontend with a JWT."""
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "User not authenticated"}, status=401)
+
+    # Generate an application JWT for the logged in user
+    jwt = RefreshToken.for_user(request.user)
 
     user = {
-        'email': request.user.username,
+        'email': request.user.email or request.user.username,
         'id': request.user.id,
         'name': f'{request.user.first_name} {request.user.last_name}',
         'role': 'Admin'
     }
 
-    # Construye los parámetros como query string
     params = urlencode({
-        'token': access_token,
+        'token': str(jwt.access_token),
         'email': user['email'],
         'name': user['name'],
         'role': user['role']
