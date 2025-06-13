@@ -5,3 +5,5 @@
 /socio-backend/__pycache__/
 /socio-frontend/node_modules/
 /socio-backend/migrations/
+/socio-backend/.*pyc
+/socio-backend/.*
