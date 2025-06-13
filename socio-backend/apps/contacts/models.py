@@ -40,7 +40,6 @@ class Contact(models.Model):
         """
         Create a new contact based on provided data.
         """
-        print(data['name'])
         contact, created = Contact.objects.get_or_create(
             email=data.get("email", "").lower(),
             defaults={
@@ -50,6 +49,7 @@ class Contact(models.Model):
                 "extra_data": data.get("extra_data", {}),
             },
         )
+        print(created)
         return contact
 
     def update_contact(data: dict) -> "Contact":

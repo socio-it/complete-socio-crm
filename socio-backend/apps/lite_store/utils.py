@@ -62,7 +62,7 @@ def take_information(url: str):
                 try:
                     return fn(*args, **kwargs)
                 except Exception as e:  # noqa: BLE001
-                    print(f"❌  Error en «{step}»: {e}")
+                    #print(f"❌  Error en «{step}»: {e}")
                     traceback.print_exc()
             return wrapper
         return decorator
@@ -120,19 +120,106 @@ def take_information(url: str):
         # 4) Publicaciones --------------------------------------------------------
         @safe("Publicaciones")
         def publicaciones():
+            """Obtiene todas las publicaciones.
+
+            1. Intenta navegar directamente a /recent-activity/posts/.
+            2. Si falla (p.e. LinkedIn redirige a 'all'), intenta hacer clic en la
+               pestaña de Actividad.
+            """
+            complete_posts = []
+            reached = False
             try:
                 driver.get(PROFILE_URL + "recent-activity/posts/")
-                WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+                WebDriverWait(driver, 5).until(
+                    EC.presence_of_element_located((By.TAG_NAME, "body")))
+                button = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.ID, 'content-collection-pill-0'))
+                )
+
+                # Realiza el clic en el botón
+                button.click()
+
+                posts = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.CLASS_NAME, "display-flex.flex-wrap.list-style-none.justify-center"))
+                )
+                li_elements = posts.find_elements(By.TAG_NAME, 'li')#[:4]
+
+                for idx, li in enumerate(li_elements, start=1):
+                    try:
+                        # Extraer el texto del cuerpo del post
+                        post_content = li.find_element(By.CLASS_NAME, 'vBFDeurYwhPqwqSmNueodbLDEyojuSXWQ').text
+                        complete_posts.append(post_content)
+                        if len(complete_posts) >= 4: break
+                    except Exception as e:
+                        print(f"No se encontró contenido en el elemento {idx}: {e}\n")
+                reached = True
             except TimeoutException:
+                # volvemos atrás y probamos mediante clic
                 driver.back()
-                wait_for("//a[contains(@href,'recent-activity')]", By.XPATH).click()
+
+            if not reached:
+                wait_for("//a[contains(@href,'recent-activity')]",
+                         By.XPATH).click()
 
             end = time.time() + SCROLL_TIME
             while time.time() < end:
                 driver.execute_script("window.scrollBy(0, window.innerHeight);")
                 human()
-            perfil["publicaciones_html"] = driver.page_source
+            perfil["publicaciones_html"] = complete_posts
             driver.back()
+            human()
+
+        # 4) Comentarios ---------------------------------------------------------
+        @safe("Comentarios")
+        def Comentarios():
+            """Obtiene algunos comentarios.
+
+            1. Intenta navegar directamente a /recent-activity/posts/.
+            2. Si falla (p.e. LinkedIn redirige a 'all'), intenta hacer clic en la
+               pestaña de Actividad.
+            """
+            complete_comments = []
+            reached = False
+            try:
+                driver.get(PROFILE_URL + "recent-activity/posts/")
+                WebDriverWait(driver, 5).until(
+                    EC.presence_of_element_located((By.TAG_NAME, "body")))
+                button = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.ID, 'content-collection-pill-1'))
+                )
+
+                # Realiza el clic en el botón
+                button.click()
+
+                posts = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.CLASS_NAME, "display-flex.flex-wrap.list-style-none.justify-center"))
+                )
+                li_elements = posts.find_elements(By.TAG_NAME, 'li')#[:4]
+
+                for idx, li in enumerate(li_elements, start=1):
+                    try:#https://www.linkedin.com/in/andrea-guerrero-quintero-b567255a/recent-activity/all/
+                        # Extraer el texto del cuerpo del post
+                        post_content = li.find_element(By.CLASS_NAME, 'comments-comment-item__main-content.feed-shared-main-content--comment.t-14.t-black.t-normal').text
+                        complete_comments.append(post_content)
+                        if len(complete_comments) >= 4: break
+                    except Exception as e:
+                        print(f"No se encontró contenido en el elemento {idx}: {e}\n")
+                reached = True
+            except TimeoutException:
+                # volvemos atrás y probamos mediante clic
+                driver.back()
+
+            if not reached:
+                wait_for("//a[contains(@href,'recent-activity')]",
+                         By.XPATH).click()
+
+            end = time.time() + SCROLL_TIME
+            while time.time() < end:
+                driver.execute_script("window.scrollBy(0, window.innerHeight);")
+                human()
+            perfil["comments"] = complete_comments
+            driver.back()
+            human()
 
         # 5) Aptitudes ------------------------------------------------------------
         @safe("Aptitudes")
@@ -155,12 +242,13 @@ def take_information(url: str):
         acerca()
         publicaciones()
         aptitudes()
+        Comentarios()
 
         perfil["perfil_html"] = driver.page_source
 
         # 6) Guardar RAW en BASE_DIR ---------------------------------------------
         RAW_PATH.write_text(json.dumps(perfil, ensure_ascii=False, indent=2), encoding="utf-8")
-        print(f"✅ RAW escrito en {RAW_PATH.relative_to(BASE_DIR)}")
+        #print(f"✅ RAW escrito en {RAW_PATH.relative_to(BASE_DIR)}")
 
         # ── Limpieza en memoria (BeautifulSoup) ────────────────────────────────
         def html2text(html: str) -> str:
@@ -231,18 +319,19 @@ def take_information(url: str):
             "experiencia": get_experiences(soup_perfil),
             "educacion": get_education(soup_perfil),
             "contacto": get_contact_info(html2text(raw["contacto_html"])),
-            "publicaciones": html2text(raw["publicaciones_html"])[:1000],
+            "publicaciones": perfil["publicaciones_html"],#html2text(raw["publicaciones_html"])[:1000],
+            "comentarios": perfil["comments"]
         }
 
-        #print("Perfil limpio:", perfil_limpio)
+        ##print("Perfil limpio:", perfil_limpio)
 
         # 7) Guardar limpio en BASE_DIR y borrar RAW ----------------------------
         CLEAN_PATH.write_text(json.dumps(perfil_limpio, ensure_ascii=False, indent=2), encoding="utf-8")
         RAW_PATH.unlink(missing_ok=True)  # elimina el raw
-        print(f"📝 Limpio escrito en {CLEAN_PATH.relative_to(BASE_DIR)}")
+        #print(f"📝 Limpio escrito en {CLEAN_PATH.relative_to(BASE_DIR)}")
         return perfil_limpio
     except Exception as e:  # noqa: BLE001
-        print("🚨 Excepción general:", e)
+        #print("🚨 Excepción general:", e)
         traceback.print_exc()
     finally:
         driver.quit()
