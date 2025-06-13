@@ -7,3 +7,5 @@
 /socio-backend/migrations/
 /socio-backend/.*pyc
 /socio-backend/.*
+/socio-frontend/.eslintrc.json
+/.yarnrc.yml
