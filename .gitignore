@@ -1,3 +1,6 @@
 *.pyc
 __pycache__/
 .env
+# Ignorar base de datos SQLite
+*.sqlite3
+db.sqlite3
