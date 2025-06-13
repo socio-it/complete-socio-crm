@@ -1,3 +1,7 @@
 /socio-backend/.env
 /socio-frontend/.env
 /socio-backend/.venv
+/socio-frontend/.yarn
+/socio-backend/__pycache__/
+/socio-frontend/node_modules/
+/socio-backend/migrations/
