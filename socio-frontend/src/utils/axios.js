@@ -4,7 +4,11 @@
 
 import axios from 'axios';
 
-const axiosServices = axios.create({ baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3010/' });
+// prefer NEXT_PUBLIC_BACKEND_URL for frontend requests and fall back to React style
+// environment variable or localhost
+const axiosServices = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || process.env.REACT_APP_API_URL || 'http://localhost:8000/'
+});
 
 // interceptor for http
 axiosServices.interceptors.response.use(
