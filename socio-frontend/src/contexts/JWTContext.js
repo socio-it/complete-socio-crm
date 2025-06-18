@@ -95,17 +95,6 @@ export const JWTProvider = ({ children }) => {
     });
   };
 
-  const loginWithToken = (serviceToken, user) => {
-    setSession(serviceToken);
-    dispatch({
-      type: LOGIN,
-      payload: {
-        isLoggedIn: true,
-        user
-      }
-    });
-  };
-
   const register = async (email, password, firstName, lastName) => {
     // todo: this flow need to be recode as it not verified
     const id = chance.bb_pin();
@@ -147,13 +136,7 @@ export const JWTProvider = ({ children }) => {
     return <Loader />;
   }
 
-  return (
-    <JWTContext.Provider
-      value={{ ...state, login, loginWithToken, logout, register, resetPassword, updateProfile }}
-    >
-      {children}
-    </JWTContext.Provider>
-  );
+  return <JWTContext.Provider value={{ ...state, login, logout, register, resetPassword, updateProfile }}>{children}</JWTContext.Provider>;
 };
 
 JWTProvider.propTypes = {

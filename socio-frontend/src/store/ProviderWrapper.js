@@ -21,9 +21,9 @@ import ThemeCustomization from 'themes';
 import { persister, store } from 'store';
 import { ConfigProvider } from 'contexts/ConfigContext';
 
-import { JWTProvider as AuthProvider } from 'contexts/JWTContext';
+//import { JWTProvider as AuthProvider } from 'contexts/JWTContext';
 // import { FirebaseProvider as AuthProvider } from '../contexts/FirebaseContext';
-// import { Auth0Provider as AuthProvider } from '../contexts/Auth0Context';
+import { Auth0Provider as AuthProvider } from '../contexts/Auth0Context';
 // import { AWSCognitoProvider as AuthProvider } from 'contexts/AWSCognitoContext';
 
 export default function ProviderWrapper({ children }) {
