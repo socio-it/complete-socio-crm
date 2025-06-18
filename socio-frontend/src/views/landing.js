@@ -17,6 +17,7 @@ import PeopleSection from 'components/landingpage/PeopleSection';
 import StartupProjectSection from 'components/landingpage/StartupProjectSection';
 import FrameworkSection from 'components/landingpage/FrameworkSection';
 import FooterSection from 'components/landingpage/FooterSection';
+import Chatbot from 'components/chatbot/Chatbot';
 import { ThemeMode } from 'config';
 
 // =============================|| LANDING MAIN ||============================= //
@@ -83,6 +84,7 @@ const Landing = () => {
       <Box sx={{ py: 12.5, bgcolor: theme.palette.mode === ThemeMode.DARK ? 'background.default' : 'dark.900', pb: 0 }}>
         <FooterSection />
       </Box>
+      <Chatbot />
       <Customization />
     </>
   );
