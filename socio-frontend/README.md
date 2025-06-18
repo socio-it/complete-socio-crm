@@ -18,6 +18,18 @@ You can start editing the page by modifying `pages/index.tsx`. The page auto-upd
 
 The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
 
+## Environment variables
+
+Set the following variables in your environment to enable Microsoft authentication using MSAL:
+
+```
+NEXT_PUBLIC_AZURE_CLIENT_ID=<application id>
+NEXT_PUBLIC_AZURE_TENANT_ID=<tenant id>
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+```
+
+The backend URL should point to the Django server that exposes the `/api/auth/msal-login/` endpoint.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
