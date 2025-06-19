@@ -26,6 +26,9 @@ CLIENT_ID=os.getenv('CLIENT_ID')
 TENANT_ID=os.getenv('TENANT_ID')
 SECRET_ID=os.getenv('SECRET_ID')
 
+SPA_CLIENT_ID = os.getenv('SPA_CLIENT_ID')
+SPA_TENANT_ID = os.getenv('SPA_TENANT_ID')
+
 AD_URL=os.getenv('AD_URL')
 
 INSTALLED_APPS = [
@@ -54,20 +57,20 @@ INSTALLED_APPS = [
 ]
 
 AUTH_ADFS = {
-    "AUDIENCE": f"{CLIENT_ID}",
-    "CLIENT_ID": f'{CLIENT_ID}',
-    "CLIENT_SECRET": f'{SECRET_ID}',
+    "TENANT_ID": "23d269ba-73b5-4a22-9cb5-66178f7dde6b",
+    "CLIENT_ID": "87512db1-e64b-4ebb-936b-d116f2f6ab9c",
+    "AUDIENCE": "87512db1-e64b-4ebb-936b-d116f2f6ab9c",
+    "ISSUER":  "https://login.microsoftonline.com/23d269ba-73b5-4a22-9cb5-66178f7dde6b/v2.0",
     "CLAIM_MAPPING": {
         "first_name": "given_name",
         "last_name": "family_name",
         "username": "upn"
     },
-    'GROUPS_CLAIM':'roles',
-    'MIRROR_GROUPS':True,
-    "USERNAME_CLAIM": "upn",
-    'TENANT_ID':f'{TENANT_ID}',
-    "RELYING_PARTY_ID": f"{CLIENT_ID}",
+    "CA_BUNDLE": True,
+    "RELYING_PARTY_ID": "87512db1-e64b-4ebb-936b-d116f2f6ab9c",
 }
+
+
 
 
 LOGIN_URL = "django_auth_adfs:login"
@@ -78,9 +81,10 @@ LOGIN_REDIRECT_URL = "/"
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'django_auth_adfs.rest_framework.AdfsAccessTokenAuthentication',
+        #'django_auth_adfs.rest_framework.AdfsAccessTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication'
-    )
+    ),
+
 }
 
 

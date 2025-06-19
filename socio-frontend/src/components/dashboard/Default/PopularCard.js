@@ -1,7 +1,7 @@
 'use client';
 
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 // material-ui
 import Avatar from '@mui/material/Avatar';
@@ -26,6 +26,7 @@ import MoreHorizOutlinedIcon from '@mui/icons-material/MoreHorizOutlined';
 import KeyboardArrowUpOutlinedIcon from '@mui/icons-material/KeyboardArrowUpOutlined';
 import KeyboardArrowDownOutlinedIcon from '@mui/icons-material/KeyboardArrowDownOutlined';
 
+import BackendService from 'api_services/backendService';
 // ==============================|| DASHBOARD DEFAULT - POPULAR CARD ||============================== //
 
 const PopularCard = ({ isLoading }) => {
@@ -38,6 +39,11 @@ const PopularCard = ({ isLoading }) => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+  
+  useEffect(() => {
+    const response = BackendService.getHelloWorld(localStorage.getItem('serviceToken'));
+    console.log(response)
+  }, []);
 
   return (
     <>
