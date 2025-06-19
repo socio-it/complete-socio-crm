@@ -26,6 +26,9 @@ CLIENT_ID=os.getenv('CLIENT_ID')
 TENANT_ID=os.getenv('TENANT_ID')
 SECRET_ID=os.getenv('SECRET_ID')
 
+SPA_CLIENT_ID = os.getenv('SPA_CLIENT_ID')
+SPA_TENANT_ID = os.getenv('SPA_TENANT_ID')
+
 AD_URL=os.getenv('AD_URL')
 
 INSTALLED_APPS = [
@@ -52,22 +55,39 @@ INSTALLED_APPS = [
     'apps.lite_store',
     'apps.contacts',
 ]
-
+"""
 AUTH_ADFS = {
-    "AUDIENCE": f"{CLIENT_ID}",
-    "CLIENT_ID": f'{CLIENT_ID}',
-    "CLIENT_SECRET": f'{SECRET_ID}',
+    "TENANT_ID": "23d269ba-73b5-4a22-9cb5-66178f7dde6b",
+    "CLIENT_ID": "87512db1-e64b-4ebb-936b-d116f2f6ab9c",
+    "AUDIENCE": "87512db1-e64b-4ebb-936b-d116f2f6ab9c",
+    "ISSUER":  "https://login.microsoftonline.com/23d269ba-73b5-4a22-9cb5-66178f7dde6b/v2.0",
     "CLAIM_MAPPING": {
         "first_name": "given_name",
         "last_name": "family_name",
         "username": "upn"
     },
-    'GROUPS_CLAIM':'roles',
-    'MIRROR_GROUPS':True,
+    "CA_BUNDLE": True,
+    "RELYING_PARTY_ID": "87512db1-e64b-4ebb-936b-d116f2f6ab9c",
+}"""
+
+AUTH_ADFS = {
+    "TENANT_ID": "23d269ba-73b5-4a22-9cb5-66178f7dde6b",
+    "CLIENT_ID": "87512db1-e64b-4ebb-936b-d116f2f6ab9c",
+    "AUDIENCE": "87512db1-e64b-4ebb-936b-d116f2f6ab9c",
+    "RELYING_PARTY_ID": "87512db1-e64b-4ebb-936b-d116f2f6ab9c",
+    "ISSUER": "https://login.microsoftonline.com/23d269ba-73b5-4a22-9cb5-66178f7dde6b/v2.0",
+
     "USERNAME_CLAIM": "upn",
-    'TENANT_ID':f'{TENANT_ID}',
-    "RELYING_PARTY_ID": f"{CLIENT_ID}",
+    "CLAIM_MAPPING": {
+        "first_name": "given_name",
+        "last_name":  "family_name"
+    },
+    "CA_BUNDLE": True,
 }
+
+
+
+
 
 
 LOGIN_URL = "django_auth_adfs:login"
@@ -79,9 +99,25 @@ LOGIN_REDIRECT_URL = "/"
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'django_auth_adfs.rest_framework.AdfsAccessTokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication'
-    )
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "loggers": {
+        "django_auth_adfs": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+        },
+    },
+}
+
 
 
 AUTHENTICATION_BACKENDS = (

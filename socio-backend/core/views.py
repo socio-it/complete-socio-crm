@@ -2,11 +2,31 @@ from urllib.parse import urlencode
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+
+from rest_framework.response import Response
+from django_auth_adfs.rest_framework import AdfsAccessTokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+
+
+class AuthenticateView(APIView):
+    authentication_classes = []#AdfsAccessTokenAuthentication
+    permission_classes = []#IsAuthenticated
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        return Response({
+            "message": "Autenticación exitosa con Azure AD",
+            "username": "brian",
+            "email": getattr(user, 'email', None),
+        })
+
 
 # === LOGIN SUCCESSFUL ===
+"""
 
 def login_successful(request):
-    """Redirects the authenticated user back to the frontend with a JWT."""
     if not request.user.is_authenticated:
         return JsonResponse({"error": "User not authenticated"}, status=401)
 
@@ -32,8 +52,6 @@ def login_successful(request):
 
 
 from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
 import requests
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -79,3 +97,4 @@ class MSALLoginView(APIView):
                 "role": "Admin"
             }
         })
+        """

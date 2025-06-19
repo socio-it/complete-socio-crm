@@ -23,8 +23,7 @@ import { ConfigProvider } from 'contexts/ConfigContext';
 
 //import { JWTProvider as AuthProvider } from 'contexts/JWTContext';
 // import { FirebaseProvider as AuthProvider } from '../contexts/FirebaseContext';
-//import { Auth0Provider as AuthProvider } from '../contexts/Auth0Context';
-import { AzureADProvider as AuthProvider } from 'contexts/AzureAuth';
+import { MSALProvider as AuthProvider } from '../contexts/MSALContext';
 // import { AWSCognitoProvider as AuthProvider } from 'contexts/AWSCognitoContext';
 
 export default function ProviderWrapper({ children }) {

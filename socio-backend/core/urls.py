@@ -9,9 +9,11 @@ urlpatterns = [
     
     path('accounts/', include('allauth.urls')),
     path("api/oauth2/", include("django_auth_adfs.urls")),
-    path('', views.login_successful, name='login'),
-    path('api/auth/msal-login/', views.MSALLoginView.as_view(), name='msal-login'),
+    #path('', views.login_successful, name='login'),
+    #path('api/auth/msal-login/', views.MSALLoginView.as_view(), name='msal-login'),
     
+    path('api/hello_world/', views.AuthenticateView.as_view(), name='msal-login'),
+
     path("api/lite_store/", include(lite_store_views.urls)),
     
 ]
