@@ -22,7 +22,7 @@ const initialState = {
 const msalConfig = {
   auth: {
     clientId: process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID, // Azure Client ID
-    authority: `https://login.microsoftonline.com/${process.env.NEXT_PUBLIC_AUTH0_DOMAIN}`, // Tenant ID o nombre
+    authority: `https://login.microsoftonline.com/${process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID}`, // Tenant ID o nombre
     redirectUri: 'http://localhost:3000'
   },
   cache: {

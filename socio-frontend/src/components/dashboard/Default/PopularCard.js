@@ -41,6 +41,7 @@ const PopularCard = ({ isLoading }) => {
   };
   
   useEffect(() => {
+    console.log(localStorage.getItem('serviceToken'))
     const response = BackendService.getHelloWorld(localStorage.getItem('serviceToken'));
     console.log(response)
   }, []);

@@ -9,6 +9,7 @@ import axios from 'utils/axios';
 import { LOGIN, LOGOUT } from 'store/actions';
 import accountReducer from 'store/accountReducer';
 
+const backendClientId = process.env.NEXT_PUBLIC_AZURE_BACKEND_CLIENT_ID;
 // 1️⃣  Contexto y cliente MSAL (variable global para evitar múltiples instancias)
 const MSALContext = createContext(null);
 let msalClient; // <-- ¡sin tipos!
@@ -28,7 +29,7 @@ export const MSALProvider = ({ children }) => {
           auth: {
             clientId: process.env.NEXT_PUBLIC_AZURE_CLIENT_ID || '',
             authority: `https://login.microsoftonline.com/${process.env.NEXT_PUBLIC_AZURE_TENANT_ID}`,
-            redirectUri: typeof window !== 'undefined' ? window.location.origin : ''
+            redirectUri: 'http://localhost:3000/dashboard/analytics'//typeof window !== 'undefined' ? window.location.origin : ''
           }
         });
 
@@ -62,7 +63,7 @@ export const MSALProvider = ({ children }) => {
   // ---------- Acciones ----------
   const login = async () => {
     const { accessToken } = await msalClient.loginPopup({
-      scopes: ['openid', 'profile', 'email',`api://${process.env.NEXT_PUBLIC_AZURE_BACKEND_CLIENT_ID}/access_as_user`,]
+      scopes: ['openid', 'profile', 'email',`api://${process.env.NEXT_PUBLIC_AZURE_CLIENT_ID}/access_as_user`,]
     });
 
     const { data } = await axios.post(
