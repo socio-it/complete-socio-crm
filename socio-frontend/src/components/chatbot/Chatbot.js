@@ -19,8 +19,8 @@ function generateReply() {
   return replies[Math.floor(Math.random() * replies.length)];
 }
 
-const Chatbot = () => {
-  const [open, setOpen] = useState(false);
+const Chatbot = ({ embedded = false }) => {
+  const [open, setOpen] = useState(embedded ? true : false);
   const [messages, setMessages] = useState([{ sender: 'bot', text: 'Hola! ¿En qué puedo ayudarte?' }]);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef(null);
@@ -57,63 +57,78 @@ const Chatbot = () => {
     }, 40);
   };
 
+  const chatBox = (
+    <Paper
+      elevation={embedded ? 2 : 8}
+      sx={{
+        position: embedded ? 'relative' : 'fixed',
+        bottom: embedded ? 'auto' : 16,
+        right: embedded ? 'auto' : 16,
+        width: embedded ? '100%' : 320,
+        height: 400,
+        display: 'flex',
+        flexDirection: 'column',
+        zIndex: 1300
+      }}
+    >
+      <Box sx={{ p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="subtitle1">Chatbot</Typography>
+        {!embedded && (
+          <IconButton size="small" onClick={() => setOpen(false)}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        )}
+      </Box>
+      <Box sx={{ flexGrow: 1, px: 2, overflowY: 'auto' }}>
+        {messages.map((msg, idx) => (
+          <Box key={idx} sx={{ my: 1, textAlign: msg.sender === 'user' ? 'right' : 'left' }}>
+            <Typography
+              variant="body2"
+              sx={{
+                display: 'inline-block',
+                bgcolor: msg.sender === 'user' ? 'primary.main' : 'grey.300',
+                color: msg.sender === 'user' ? 'primary.contrastText' : 'grey.900',
+                p: 0.5,
+                borderRadius: 1
+              }}
+            >
+              {msg.text}
+            </Typography>
+          </Box>
+        ))}
+        <div ref={messagesEndRef} />
+      </Box>
+      <Box sx={{ p: 1, display: 'flex', gap: 1 }}>
+        <TextField
+          fullWidth
+          size="small"
+          variant="outlined"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleSend();
+          }}
+        />
+        <IconButton color="primary" onClick={handleSend}>
+          <SendIcon />
+        </IconButton>
+      </Box>
+    </Paper>
+  );
+
   return (
     <Box>
-      {!open && (
-        <Fab
-          color="primary"
-          onClick={() => setOpen(true)}
-          sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1300 }}
-        >
-          <ChatIcon />
-        </Fab>
-      )}
-      {open && (
-        <Paper
-          elevation={8}
-          sx={{
-            position: 'fixed',
-            bottom: 16,
-            right: 16,
-            width: 320,
-            height: 400,
-            display: 'flex',
-            flexDirection: 'column',
-            zIndex: 1300
-          }}
-        >
-          <Box sx={{ p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="subtitle1">Chatbot</Typography>
-            <IconButton size="small" onClick={() => setOpen(false)}>
-              <CloseIcon fontSize="small" />
-            </IconButton>
-          </Box>
-          <Box sx={{ flexGrow: 1, px: 2, overflowY: 'auto' }}>
-            {messages.map((msg, idx) => (
-              <Box key={idx} sx={{ my: 1, textAlign: msg.sender === 'user' ? 'right' : 'left' }}>
-                <Typography variant="body2" sx={{ display: 'inline-block', bgcolor: msg.sender === 'user' ? 'primary.main' : 'grey.300', color: msg.sender === 'user' ? 'primary.contrastText' : 'grey.900', p: 0.5, borderRadius: 1 }}>
-                  {msg.text}
-                </Typography>
-              </Box>
-            ))}
-            <div ref={messagesEndRef} />
-          </Box>
-          <Box sx={{ p: 1, display: 'flex', gap: 1 }}>
-            <TextField
-              fullWidth
-              size="small"
-              variant="outlined"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSend();
-              }}
-            />
-            <IconButton color="primary" onClick={handleSend}>
-              <SendIcon />
-            </IconButton>
-          </Box>
-        </Paper>
+      {embedded ? (
+        chatBox
+      ) : (
+        <>
+          {!open && (
+            <Fab color="primary" onClick={() => setOpen(true)} sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1300 }}>
+              <ChatIcon />
+            </Fab>
+          )}
+          {open && chatBox}
+        </>
       )}
     </Box>
   );
