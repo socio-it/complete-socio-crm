@@ -55,7 +55,7 @@ INSTALLED_APPS = [
     'apps.lite_store',
     'apps.contacts',
 ]
-
+"""
 AUTH_ADFS = {
     "TENANT_ID": "23d269ba-73b5-4a22-9cb5-66178f7dde6b",
     "CLIENT_ID": "87512db1-e64b-4ebb-936b-d116f2f6ab9c",
@@ -68,7 +68,24 @@ AUTH_ADFS = {
     },
     "CA_BUNDLE": True,
     "RELYING_PARTY_ID": "87512db1-e64b-4ebb-936b-d116f2f6ab9c",
+}"""
+
+AUTH_ADFS = {
+    "TENANT_ID": "23d269ba-73b5-4a22-9cb5-66178f7dde6b",
+    "CLIENT_ID": "87512db1-e64b-4ebb-936b-d116f2f6ab9c",
+    "AUDIENCE": "87512db1-e64b-4ebb-936b-d116f2f6ab9c",
+    "RELYING_PARTY_ID": "87512db1-e64b-4ebb-936b-d116f2f6ab9c",
+    "ISSUER": "https://login.microsoftonline.com/23d269ba-73b5-4a22-9cb5-66178f7dde6b/v2.0",
+
+    "USERNAME_CLAIM": "upn",
+    "CLAIM_MAPPING": {
+        "first_name": "given_name",
+        "last_name":  "family_name"
+    },
+    "CA_BUNDLE": True,
 }
+
+
 
 
 
@@ -81,11 +98,26 @@ LOGIN_REDIRECT_URL = "/"
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        #'django_auth_adfs.rest_framework.AdfsAccessTokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication'
+        'django_auth_adfs.rest_framework.AdfsAccessTokenAuthentication',
     ),
-
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "loggers": {
+        "django_auth_adfs": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+        },
+    },
+}
+
 
 
 AUTHENTICATION_BACKENDS = (

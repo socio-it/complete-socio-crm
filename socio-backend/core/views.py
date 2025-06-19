@@ -11,13 +11,11 @@ from rest_framework.permissions import IsAuthenticated
 
 
 class AuthenticateView(APIView):
-    authentication_classes = [AdfsAccessTokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    authentication_classes = []#AdfsAccessTokenAuthentication
+    permission_classes = []#IsAuthenticated
 
     def get(self, request, *args, **kwargs):
-        print(dict(request.headers))
         user = request.user
-
         return Response({
             "message": "Autenticación exitosa con Azure AD",
             "username": "brian",
