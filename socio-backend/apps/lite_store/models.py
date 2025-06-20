@@ -1,5 +1,8 @@
 from django.db import models
 
+#------------------------------------------------
+# This is to manage Outlook Meetings Tasks Agents
+#------------------------------------------------
 class OnlineMeetingsAnalyzed(models.Model):
     meeting_id = models.CharField(max_length=255, unique=True)
     subject = models.TextField(blank=True, null=True)
@@ -24,3 +27,13 @@ class OnlineMeetingTasks(models.Model):
 
     def __str__(self):
         return f"Task for Meeting ID: {self.meeting.meeting_id} - {self.task_description[:50]}"
+    
+#--------------------------------------
+# This is to manage Consultant AI Agent
+#--------------------------------------
+class ConsultantResponses(models.Model):
+    problem_situation = models.TextField(null=True)
+    context = models.JSONField(null=True)
+    needs = models.JSONField(null=True)
+    proposal = models.TextField(null=True)
+    

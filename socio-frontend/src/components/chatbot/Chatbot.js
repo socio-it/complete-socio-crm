@@ -1,13 +1,69 @@
 import { useState, useRef, useEffect } from 'react';
-import Box from '@mui/material/Box';
-import IconButton from '@mui/material/IconButton';
-import TextField from '@mui/material/TextField';
-import Paper from '@mui/material/Paper';
-import Typography from '@mui/material/Typography';
-import Fab from '@mui/material/Fab';
+import {
+  Box,
+  IconButton,
+  TextField,
+  Paper,
+  Typography,
+  Fab,
+  Divider,
+  CircularProgress
+} from '@mui/material';
+
 import CloseIcon from '@mui/icons-material/Close';
 import ChatIcon from '@mui/icons-material/Chat';
 import SendIcon from '@mui/icons-material/Send';
+
+import Image from 'next/image';      // ⬅️  NEW
+import { keyframes } from '@mui/system';
+
+/* -------------------- ANIMACIÓN SUAVE -------------------- */
+const float = keyframes`
+  0%   { transform: translateY(0);      }
+  50%  { transform: translateY(-85px);   }
+  100% { transform: translateY(0);      }
+`;
+
+/* -------------------- BLOQUE DE “ESPERANDO…” -------------------- */
+const WaitingForForm = () => (
+  <Box
+    sx={{
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: '#fff',
+      textAlign: 'center'
+    }}
+  >
+    {/* Avatar flotando */}
+    <Box
+      sx={{
+        width: 150,
+        height: 150,
+        mb: 2,
+        animation: `${float} 5s ease-in-out infinite`
+      }}
+    >
+      <Image
+        src="/ai-agent.png"   // ⬅️ Ruta a tu imagen
+        alt="Agente IA"
+        width={150}
+        height={150}
+        priority
+        style={{ objectFit: 'contain' }}
+      />
+    </Box>
+
+    {/* Mensaje */}
+    <Typography variant="caption" sx={{ opacity: 0.8 }}>
+      Esperando información del formulario...
+    </Typography>
+  </Box>
+);
+
+
 
 function generateReply() {
   const replies = [
@@ -19,28 +75,50 @@ function generateReply() {
   return replies[Math.floor(Math.random() * replies.length)];
 }
 
-const Chatbot = ({ embedded = false }) => {
-  const [open, setOpen] = useState(embedded ? true : false);
-  const [messages, setMessages] = useState([{ sender: 'bot', text: 'Hola! ¿En qué puedo ayudarte?' }]);
+const Chatbot = ({ embedded = false, firstMessage, proposal }) => {
+  const [open, setOpen] = useState(embedded);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [initialLoaded, setInitialLoaded] = useState(false);
   const messagesEndRef = useRef(null);
+  const isUserMessageRef = useRef(false);
 
+  // Scroll automático
   useEffect(() => {
-    if (messagesEndRef.current) {
+    if (isUserMessageRef.current && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
+    isUserMessageRef.current = false;
   }, [messages]);
+
+  // Cargar mensaje inicial cuando llega
+  useEffect(() => {
+    if (!initialLoaded && firstMessage) {
+      setMessages([{ sender: 'user', text: firstMessage }]);
+      setInitialLoaded(true);
+    }
+  }, [firstMessage, initialLoaded]);
+
+  // Cargar mensaje inicial cuando llega
+  useEffect(() => {
+    if (proposal) {
+      setMessages((prev) => [...prev,{ sender: 'bot', text: proposal }]);
+      setInitialLoaded(true);
+    }
+  }, [proposal]);
 
   const handleSend = () => {
     if (!input.trim()) return;
     const userMessage = { sender: 'user', text: input.trim() };
+    isUserMessageRef.current = true;
     setMessages((prev) => [...prev, userMessage]);
-    const reply = generateReply();
     setInput('');
 
-    let index = 0;
+    const reply = generateReply();
     const typingMessage = { sender: 'bot', text: '' };
     setMessages((prev) => [...prev, typingMessage]);
+
+    let index = 0;
     const interval = setInterval(() => {
       index += 1;
       setMessages((prev) => {
@@ -51,65 +129,109 @@ const Chatbot = ({ embedded = false }) => {
         };
         return newMessages;
       });
-      if (index === reply.length) {
-        clearInterval(interval);
-      }
+      if (index === reply.length) clearInterval(interval);
     }, 40);
   };
 
   const chatBox = (
     <Paper
-      elevation={embedded ? 2 : 8}
+      elevation={embedded ? 1 : 4}
       sx={{
         position: embedded ? 'relative' : 'fixed',
-        bottom: embedded ? 'auto' : 16,
-        right: embedded ? 'auto' : 16,
-        width: embedded ? '100%' : 320,
-        height: 400,
+        bottom: embedded ? 'auto' : 24,
+        right: embedded ? 'auto' : 24,
+        width: embedded ? '100%' : 360,
+        height: 480,
         display: 'flex',
         flexDirection: 'column',
-        zIndex: 1300
+        borderRadius: 3,
+        overflow: 'hidden',
+        zIndex: 50,
+        bgcolor: 'rgba(0, 0, 0, 0.5)',
+        backdropFilter: 'blur(10px)'
       }}
     >
-      <Box sx={{ p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="subtitle1">Chatbot</Typography>
+      {/* Header */}
+      <Box
+        sx={{
+          p: 2,
+          bgcolor: 'transparent',
+          color: '#fff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}
+      >
+        <Typography variant="subtitle1">Consultor Virtual</Typography>
         {!embedded && (
-          <IconButton size="small" onClick={() => setOpen(false)}>
-            <CloseIcon fontSize="small" />
+          <IconButton onClick={() => setOpen(false)} sx={{ color: 'inherit' }}>
+            <CloseIcon />
           </IconButton>
         )}
       </Box>
-      <Box sx={{ flexGrow: 1, px: 2, overflowY: 'auto' }}>
-        {messages.map((msg, idx) => (
-          <Box key={idx} sx={{ my: 1, textAlign: msg.sender === 'user' ? 'right' : 'left' }}>
-            <Typography
-              variant="body2"
-              sx={{
-                display: 'inline-block',
-                bgcolor: msg.sender === 'user' ? 'primary.main' : 'grey.300',
-                color: msg.sender === 'user' ? 'primary.contrastText' : 'grey.900',
-                p: 0.5,
-                borderRadius: 1
-              }}
-            >
-              {msg.text}
-            </Typography>
-          </Box>
-        ))}
-        <div ref={messagesEndRef} />
+
+      <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
+
+      {/* Mensajes */}
+      <Box sx={{ flexGrow: 1, p: 2, overflowY: 'auto' }}>
+        {!initialLoaded ? (
+          <WaitingForForm /> 
+        ) : (
+          <>
+            {messages.map((msg, idx) => (
+              <Box
+                key={idx}
+                sx={{
+                  display: 'flex',
+                  justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+                  my: 1
+                }}
+              >
+                <Box
+                  sx={{
+                    px: 2,
+                    py: 1,
+                    bgcolor:
+                      msg.sender === 'user' ? 'white' : 'rgba(255, 255, 255, 0.15)',
+                    color: msg.sender === 'user' ? '#000' : '#fff',
+                    borderRadius: 2,
+                    maxWidth: '75%',
+                    boxShadow: 1
+                  }}
+                >
+                  <Typography variant="body2">{msg.text}</Typography>
+                </Box>
+              </Box>
+            ))}
+            <div ref={messagesEndRef} />
+          </>
+        )}
       </Box>
-      <Box sx={{ p: 1, display: 'flex', gap: 1 }}>
+
+      <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
+
+      {/* Input */}
+      <Box sx={{ display: 'flex', alignItems: 'center', p: 2, gap: 1 }}>
         <TextField
           fullWidth
           size="small"
-          variant="outlined"
+          placeholder="Escribe tu mensaje..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleSend();
           }}
+          disabled={!initialLoaded}
+          sx={{
+            bgcolor: 'white',
+            borderRadius: 2
+          }}
         />
-        <IconButton color="primary" onClick={handleSend}>
+        <IconButton
+          color="primary"
+          onClick={handleSend}
+          disabled={!initialLoaded || !input.trim()}
+        >
           <SendIcon />
         </IconButton>
       </Box>
@@ -123,7 +245,11 @@ const Chatbot = ({ embedded = false }) => {
       ) : (
         <>
           {!open && (
-            <Fab color="primary" onClick={() => setOpen(true)} sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1300 }}>
+            <Fab
+              color="primary"
+              onClick={() => setOpen(true)}
+              sx={{ position: 'fixed', bottom: 24, right: 24, zIndex: 100 }}
+            >
               <ChatIcon />
             </Fab>
           )}

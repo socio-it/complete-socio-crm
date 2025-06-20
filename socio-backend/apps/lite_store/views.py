@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from .utils import take_information
 from apps.contacts.models import Contact
 from .clients import MicrosoftClient
-from .models import OnlineMeetingsAnalyzed, OnlineMeetingTasks
+from .models import OnlineMeetingsAnalyzed, OnlineMeetingTasks, ConsultantResponses
 
 class TakeInformation:
     def post(self,request):
@@ -446,3 +446,35 @@ class JWTManageTeamsMeetingsAuth(APIView, ManageTeamsMeetings):
     authentication_classes = []
     permission_classes = ()
 
+
+class MakeProblemAnalysis:
+    def post(self, request):
+        url = "http://localhost:8080/v2/v2/agent_sales_consultant_invoaction"   # nota: un solo /v2
+        data = request.data
+
+        headers = {
+            "accept": "application/json"
+        }
+        ai_agent_response = requests.post(url, json=data, headers=headers, timeout=60)
+        response = ai_agent_response.json()
+        ConsultantResponses.objects.create(
+            problem_situation=data.get('problemSituation'),
+            context={
+                'industry':  data.get('industry'),
+                'product':   data.get('product'),
+                'area':      data.get('area'),
+            },
+            needs={
+                'functionality':  data.get('functionality'),
+                'businessGoals':  data.get('businessGoals'),
+                'restrictions':   data.get('restrictions'),
+            },
+            proposal=response
+        )
+
+        '"Estimado cliente,\n\nEntiendo que se encuentra buscando una solución para [mencionar brevemente la necesidad \"test\" si se conoce algo, ej: optimizar sus procesos de ventas].  Sin embargo, para poder ofrecerle una propuesta de valor verdaderamente efectiva y que se ajuste a sus necesidades específicas, necesito una comprensión más profunda de su situación.\n\nImaginemos, por ejemplo, que su objetivo es el mismo que el descrito en nuestro ejemplo previo: mejorar la eficiencia del equipo de ventas.  En ese caso, podríamos ofrecer una solución como la descrita en el JSON que le he proporcionado (ver ejemplo adjunto).  Esta solución, un Sistema de Gestión de Relaciones con Clientes (CRM) básico,  promete un aumento proyectado de ventas del 15-20% en 6 meses, gracias a una mejor gestión de contactos y oportunidades.\n\nSin embargo, la realidad es que \"test\" es demasiado general.  Para poder generar una propuesta de valor similarmente precisa y efectiva para *su* situación particular, necesito que me proporcione más detalles.  Necesitamos definir conjuntamente:\n\n* **Objetivos concretos:** ¿Qué busca lograr exactamente? ¿Aumentar las ventas en un porcentaje específico? ¿Reducir costos? ¿Mejorar la satisfacción del cliente?  Cuanto más específico sea, mejor podré adaptarme a sus necesidades.\n* **Restricciones:** ¿Tiene limitaciones presupuestarias? ¿Restricciones tecnológicas? ¿Limitaciones de tiempo?  Conocer sus limitaciones me permitirá ofrecer soluciones realistas y factibles.\n* **Descripción detallada de la necesidad:**  Describa el problema que está intentando solucionar con el máximo detalle posible. ¿Qué procesos son ineficientes? ¿Qué recursos están siendo mal utilizados? ¿Qué métricas se ven afectadas?\n\nUna vez que tenga esta información detallada, podré elaborar una propuesta de valor completa, incluyendo un resumen ejecutivo, un identificador de solución único, el nombre de la solución recomendada, las características que aborda, los objetivos que cumple, el valor estimado y los pasos recomendados para la implementación.  Además, podré incluir una estimación de costos y un análisis de la complejidad de la integración con sus sistemas existentes.\n\nEn resumen, la información que me proporcione determinará la calidad y la eficacia de la solución que le ofrezco.  Estoy ansioso por colaborar con usted y ayudarle a alcanzar sus objetivos de negocio.  Por favor, contácteme para programar una reunión donde podamos discutir sus necesidades con mayor detalle."'
+        return JsonResponse({"proposal": response}, status=200)
+    
+class JWTMakeProblemAnalysisAuth(APIView, MakeProblemAnalysis):
+    authentication_classes = []
+    permission_classes = ()

@@ -68,7 +68,7 @@ const Logo = () => {
      />
    </svg>
     */
-  <Image src="/SOcio_Logo.svg" alt="Socio CRM logo" width={150} height={150} />
+  <Image src="/SOcio_Logo.svg" alt="Socio CRM logo" width={60} height={60} />
   );
 };
 
