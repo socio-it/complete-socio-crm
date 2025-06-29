@@ -1,14 +1,27 @@
+import os
 import ast
 import json
 import requests
 from django.http import JsonResponse
 from rest_framework.views import APIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+
+
+import logging
+from rest_framework import status
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
+from django.core.exceptions import ObjectDoesNotExist
 
 
 from .utils import take_information
 from apps.contacts.models import Contact
 from .clients import MicrosoftClient
-from .models import OnlineMeetingsAnalyzed, OnlineMeetingTasks, ConsultantResponses
+from .models import OnlineMeetingsAnalyzed, OnlineMeetingTasks, ConsultantResponses, OnlineReminderTasks
+from .serializers import *
+from core import settings
+
+logger = logging.getLogger(__name__)
 
 class TakeInformation:
     def post(self,request):
@@ -368,9 +381,11 @@ f84e4e30-5070-4d6d-bf8b-664e03bdf995/546-0
         events = client.get_interviews(user_guid)
         print(f"Events found: {len(events)}")
         for event in events:
-            join_url = event.get("joinUrl", "")
-            print(f"Join URL: {join_url}")
+            join_url = event.get("onlineMeeting", "")
+            join_url = join_url.get("joinUrl", "")
+            print(f"Join URL: {join_url}",event.get('subject'),user_guid)
             meetings = client.get_online_meetings(join_url, user_guid)
+            print(meetings)
             if meetings:
                 print(f"Meetings found: {len(meetings)}")
                 for meeting in meetings:
@@ -385,36 +400,36 @@ f84e4e30-5070-4d6d-bf8b-664e03bdf995/546-0
                                     transcription_text = client.get_transcription_content(meeting_id, user_guid, transcript_it)
                                     if transcription_text:
                                         print(transcription_text)
-        """
-        url = "http://localhost:8080/v2/v2/teams_task_builder_agent"   # nota: un solo /v2
-
-        params = {              # se envían como query-string
+        url = settings.AGENTS_API_URL+"v2/v2/teams_task_builder_agent"
+        params = {
             "message": transcription
         }
 
         headers = {
             "accept": "application/json"
-            # NO pongas Content-Type; no hay cuerpo JSON
         }
 
-        response = requests.post(url, params=params, headers=headers, timeout=10)
+        response = requests.post(url, params=params, headers=headers, timeout=200)
+        response.raise_for_status()  
 
-        meeting = OnlineMeetingsAnalyzed.objects.get_or_create(
+        response_data = response.json() 
+        
+        meeting, created = OnlineMeetingsAnalyzed.objects.get_or_create(
             meeting_id=4,
             defaults={
                 "subject": "New reunion",
-                "created_by": "brian restrepo" 
+                "created_by": "brian restrepo",
+                "summary": response_data.get('summary', ''),
             }
         )
-        if meeting[1]:  # Si se creó un nuevo objeto
-            print(response.text)
-            for task in ast.literal_eval(response.text):
+
+        if created:
+            for task in response_data.get('tasks', []):
                 OnlineMeetingTasks.objects.create(
-                    meeting=meeting[0],
+                    meeting=meeting,
                     task_description=task
                 )
-                """
-            
+        """"""
         return JsonResponse({"meetings": 'meetings were created'}, status=200)
     
     def patch(self,request, pk=None):
@@ -449,7 +464,7 @@ class JWTManageTeamsMeetingsAuth(APIView, ManageTeamsMeetings):
 
 class MakeProblemAnalysis:
     def post(self, request):
-        url = "http://localhost:8080/v2/v2/agent_sales_consultant_invoaction"   # nota: un solo /v2
+        url = settings.AGENTS_API_URL + "v2/v2/agent_sales_consultant_invoaction"
         data = request.data
 
         headers = {
@@ -478,3 +493,154 @@ class MakeProblemAnalysis:
 class JWTMakeProblemAnalysisAuth(APIView, MakeProblemAnalysis):
     authentication_classes = []
     permission_classes = ()
+
+
+
+
+
+def build_response(success=True, message=None, error=None, data=None, status_code=status.HTTP_200_OK):
+    return Response({
+        "success": success,
+        "message": message,
+        "error": error,
+        "data": data
+    }, status=status_code)
+
+
+class PerformanceEvaluationTemplateCreate(ListCreateAPIView):
+    queryset = OnlineMeetingTasks.objects.all()
+    serializer_class = OutlookTasksSerializer
+    authentication_classes = []
+    permission_classes = []
+    
+    def post(self, request, *args, **kwargs):
+        return build_response(False, error="The employee wasn't sent, it is required!", status_code=status.HTTP_400_BAD_REQUEST)
+
+
+def schedule_meeting():
+    client = MicrosoftClient()
+    client.schedule_event(
+        subject="Team Sync Meeting",
+        start_time="2025-06-23T14:00:00",
+        end_time="2025-06-23T15:00:00",
+        attendees=["JuanParraGomez@Socio675.onmicrosoft.com"],
+        body="Let’s sync on project progress.",
+        location="Conference Room B"
+    )
+    return True
+
+def create_draft_email():
+    client = MicrosoftClient()
+    client.create_draft_email(
+        subject="Seguimiento proyecto",
+        body="<p>Hola equipo,<br>Adjunto resumen de avances.<br>Saludos.</p>",
+        to_recipients=["JuanParraGomez@Socio675.onmicrosoft.com"]
+    )
+
+def create_scheduled_email():
+    client = MicrosoftClient()
+    client.send_email_now(
+        subject="Reminder: revisar base de datos",
+        body="<p>Recuerda revisar lo pendiente para la entrega de mañana.</p>",
+        to_recipients=["it@socio.it.com"]
+    )
+
+class PerformanceEvaluationTemplateDetail(RetrieveUpdateDestroyAPIView):
+    queryset = OnlineMeetingTasks.objects.all()
+    serializer_class = OutlookTasksSerializer
+    authentication_classes = []
+    permission_classes = []
+
+    def put(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.task_description = request.data.get('task_description', instance.task_description)
+            instance.status = request.data.get('status', instance.status)
+            instance.save()
+            serializer = self.get_serializer(instance)
+            #create_draft_email()
+            #schedule_meeting()
+            #create_scheduled_email()
+            return build_response(data=serializer.data,message='The task was updated successfully', error=None, status_code=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return build_response(False, error="The employee was not found!", status_code=status.HTTP_404_NOT_FOUND)
+
+
+class ExecuteTaskViews(APIView):
+    queryset = OnlineMeetingTasks.objects.all()
+    serializer_class = OutlookTasksSerializer
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, pk, *args, **kwargs):
+        try:
+            instance = get_object_or_404(self.queryset, pk=pk)
+            serializer = self.serializer_class(instance)
+            agents_url = f"{settings.AGENTS_API_URL}v2/v2/task_clasifier"
+            params = {
+                "message": instance.task_description,
+                "context": instance.meeting.summary
+            }
+
+            headers = {
+                "accept": "application/json"
+            }
+            
+            response = requests.post(agents_url, params=params, headers=headers, timeout=10)
+            json_response = response.json()
+            task = json_response.get('task_payload', None)
+
+            if task:
+                if task.get('action') == 'create_email_draft':
+                    client = MicrosoftClient()
+                    client.create_draft_email(
+                        subject=task.get('subject', 'No Subject'),
+                        body=task.get('message', ''),
+                        to_recipients=[]
+                    )
+                elif task.get('action') == 'schedule_meeting':
+                    client = MicrosoftClient()
+                    client.schedule_event(
+                        subject=task.get('meeting_subject', 'No Subject'),
+                        start_time=task.get('meeting_start'),
+                        end_time=task.get('meeting_end'),
+                        attendees=[],
+                        body=task.get('meeting_body', ''),
+                        location='remote'
+                    )
+                elif task.get('action') == 'simple_task':
+                    print(task)
+                    task = OnlineReminderTasks.objects.create(
+                        task_reminder=instance,
+                        notification_date=task.get('reminder_time', ''),
+                        status='Pending',
+                        email='it@socio.it.com'
+                    )
+                    
+                else:
+                    return build_response(
+                        data=False,
+                        error="Unknown task type.",
+                        status_code=status.HTTP_400_BAD_REQUEST
+                    )
+
+            return build_response(
+                data=serializer.data,
+                message="The tasks was executed successfully!.",
+                error=None,
+                status_code=status.HTTP_200_OK
+            )
+
+        except ObjectDoesNotExist:
+            return build_response(
+                data=False,
+                error="Task wasn't found.",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        except requests.RequestException as e:
+            return build_response(
+                data=False,
+                error=f"Error while the task was executed!: {str(e)}",
+                status_code=status.HTTP_502_BAD_GATEWAY
+            )
+

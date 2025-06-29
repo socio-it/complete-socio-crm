@@ -276,5 +276,8 @@
   "login-submit": "Sign In",
   "login-valid-email": "Must be a valid email", 
   "login-email-required": "Email is required",
-  "login-password-required": "Password is required"
+  "login-password-required": "Password is required",
+
+  "agents": "AI Agents",
+  "outlook-tasks-agent": "Outlook Tasks"
 }

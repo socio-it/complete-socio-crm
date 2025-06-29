@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
@@ -11,7 +11,9 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Chatbot from 'components/chatbot/Chatbot';
 
+
 import BackendService from 'api_services/backendService';
+import { use } from 'react';
 
 const ChatbotSection = () => {
   const [product, setProduct] = useState('');
@@ -25,18 +27,56 @@ const ChatbotSection = () => {
   const [firstMessage, setFirstMessage] = useState(null);
   const [proposal, setProposal] = useState(null);
   
+  // Al montar, generar threadId en sessionStorage (cliente)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const existing = sessionStorage.getItem('threadId');
+    if (!existing) {
+      const sessionId = window.crypto.randomUUID();
+      sessionStorage.setItem('threadId', sessionId);
+    }
+  }, []);
+
+  /*useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleBeforeUnload = async (e) => {
+      const threadId = sessionStorage.getItem('threadId');
+      if (threadId) {
+        try {
+          const { data } = await BackendService.postLandingPageStartChatBot(
+            localStorage.getItem('serviceToken'),
+            JSON.stringify({ threadId })
+          );
+        } catch (err) {
+          console.error('Error clearing session memory:', err);
+        }
+      }
+      e.preventDefault();
+      e.returnValue = '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);*/
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const thread_id = sessionStorage.getItem('threadId');
     const formData = {
-      "product": product,
-      "industry": industry,
-      "functionality": functionality,
-      "problemSituation": problemSituation,
-      "businessGoals": businessGoals,
-      "area": area,
-      "restrictions": restrictions
-    }
-    setFirstMessage(`
+      product,
+      industry,
+      functionality,
+      problemSituation,
+      businessGoals,
+      area,
+      restrictions,
+      thread_id,
+    };
+    setFirstMessage(
+      `
         product: ${product},
         industry: ${industry},
         functionality: ${functionality},
@@ -44,10 +84,18 @@ const ChatbotSection = () => {
         area: ${area},
         businessGoals: ${businessGoals},
         restrictions: ${restrictions}
-    `)
+      `
+    );
 
-    const { data } = await BackendService.postLandingPageStartChatBot(localStorage.getItem('serviceToken'),formData);
-    setProposal(data.proposal)
+    try {
+      const { data } = await BackendService.postLandingPageStartChatBot(
+        localStorage.getItem('serviceToken'),
+        formData
+      );
+      setProposal(data.proposal);
+    } catch (error) {
+      console.error('Error starting chatbot:', error);
+    }
   };
 
   return (

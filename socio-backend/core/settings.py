@@ -220,3 +220,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.UsersByTenant'
 
+AGENTS_API_URL = os.getenv('AGENTS_API_URL')

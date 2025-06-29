@@ -1,4 +1,5 @@
 import requests
+import datetime
 import urllib.parse
 from msal import ConfidentialClientApplication
 
@@ -37,12 +38,12 @@ class MicrosoftClient:
             Get an access token for Microsoft Graph API.
         """
         app = ConfidentialClientApplication(
-            client_id="7bd1de24-1092-4dda-9d3e-fdac2f98456c",
+            client_id="e05af3ec-4d85-4471-b639-059af3044b5d",
             authority="https://login.microsoftonline.com/23d269ba-73b5-4a22-9cb5-66178f7dde6b",
-            client_credential="ABp8Q~whxwuKma6DhcacwXPLXIi6XmdYBwXUab6D"
+            client_credential="5Cy8Q~8IQOlgcNqpE66ARza_toi4uu_HmeN.mcfk"
         )
         
-        token_response = app.acquire_token_for_client(scopes=["https://org0ad31ef7.crm2.dynamics.com/.default"])
+        token_response = app.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
         return token_response.get("access_token")
     
 
@@ -94,7 +95,6 @@ class MicrosoftClient:
         response = requests.get(url, headers=headers)
         
         if response.status_code == 200:
-            print(f"User info fetched successfully: {response.json()}")
             return response.json().get("id", None)
         else:
             print(f"Error fetching user info: {response.text}")
@@ -119,7 +119,7 @@ class MicrosoftClient:
             "Authorization": f"Bearer {self.transcription_access_token}",
             "Content-Type": "application/json"
         }
-
+        print(user_id, join_url)
         url_ = f"{self.base_url}/users/c4b17935-09ab-4df1-9611-9e97677f1bac/onlineMeetings"
         filter = urllib.parse.quote(f"joinWebUrl eq '{join_url}'")
         url = f"{url_}?$filter={filter}"
@@ -160,3 +160,171 @@ class MicrosoftClient:
         else:
             print(f"Error fetching transcription: {response.text}")
             return None
+        
+
+    def schedule_event(self, subject, start_time, end_time, attendees, body="", location=""):
+        """
+        Schedule a calendar event via Microsoft Graph.
+
+        :param subject: Title of the meeting
+        :param start_time: ISO format start time (e.g., "2025-06-23T14:00:00")
+        :param end_time: ISO format end time
+        :param attendees: List of emails to invite
+        :param body: Optional description
+        :param location: Optional location
+        :return: Response dict or error
+        """
+        url = f"{self.base_url}/users/c4b17935-09ab-4df1-9611-9e97677f1bac/events"  
+        
+        headers = {
+            "Authorization": f"Bearer {self.access_token}",
+            "Content-Type": "application/json"
+        }
+
+        event_data = {
+            "subject": subject,
+            "body": {
+                "contentType": "HTML",
+                "content": body or "Scheduled by MicrosoftClient"
+            },
+            "start": {
+                "dateTime": start_time,
+                "timeZone": "SA Pacific Standard Time"
+            },
+            "end": {
+                "dateTime": end_time,
+                "timeZone": "SA Pacific Standard Time"
+            },
+            "location": {
+                "displayName": location or "Virtual"
+            },
+            "attendees": [
+                {
+                    "emailAddress": {
+                        "address": email,
+                        "name": email.split('@')[0]
+                    },
+                    "type": "required"
+                } for email in attendees
+            ],
+            "allowNewTimeProposals": True,
+            "isOnlineMeeting": True,
+            "onlineMeetingProvider": "teamsForBusiness"
+        }
+
+        response = requests.post(url, headers=headers, json=event_data)
+
+        if response.status_code in (200, 201):
+            return response.json()
+        else:
+            print("Error scheduling event:", response.status_code, response.text)
+            return {"error": response.json()}
+        
+
+    def create_draft_email(self, subject, body, to_recipients, cc_recipients=None, bcc_recipients=None):
+        """
+        Create a draft email in Outlook using Microsoft Graph API.
+
+        :param subject: Subject of the email
+        :param body: Body content of the email (HTML or plain text)
+        :param to_recipients: List of email addresses to send to
+        :param cc_recipients: Optional list of CC addresses
+        :param bcc_recipients: Optional list of BCC addresses
+        :return: The draft message object or error
+        """
+        url = f"{self.base_url}/users/c4b17935-09ab-4df1-9611-9e97677f1bac/messages"
+
+        headers = {
+            "Authorization": f"Bearer {self.access_token}",
+            "Content-Type": "application/json"
+        }
+
+        def format_recipients(emails):
+            return [{"emailAddress": {"address": email}} for email in emails]
+
+        message_data = {
+            "subject": subject,
+            "body": {
+                "contentType": "HTML",
+                "content": body
+            },
+            "toRecipients": format_recipients(to_recipients),
+            "ccRecipients": format_recipients(cc_recipients or []),
+            "bccRecipients": format_recipients(bcc_recipients or [])
+        }
+
+        response = requests.post(url, headers=headers, json=message_data)
+
+        if response.status_code in (200, 201):
+            return response.json()
+        else:
+            print("Error creating draft email:", response.status_code, response.text)
+            return {"error": response.json()}
+
+    def send_email_now(self,
+                   subject: str,
+                   body: str,
+                   to_recipients: list[str],
+                   cc_recipients: list[str] | None = None,
+                   bcc_recipients: list[str] | None = None) -> dict:
+        """
+        Send an email immediately with Microsoft Graph.
+
+        :param subject: Subject line
+        :param body: HTML or plain-text body
+        :param to_recipients: List of main recipients
+        :param cc_recipients: List of CC recipients (optional)
+        :param bcc_recipients: List of BCC recipients (optional)
+        :return: {"status": "sent"} or {"error": ...}
+        """
+        url = f"{self.base_url}/users/c4b17935-09ab-4df1-9611-9e97677f1bac/sendMail"
+
+        headers = {
+            "Authorization": f"Bearer {self.access_token}",
+            "Content-Type": "application/json"
+        }
+
+        def fmt(addresses: list[str] | None):
+            return [{"emailAddress": {"address": a}} for a in (addresses or [])]
+
+        payload = {
+            "message": {
+                "subject": subject,
+                "body": {"contentType": "HTML", "content": body},
+                "toRecipients":  fmt(to_recipients),
+                "ccRecipients":  fmt(cc_recipients),
+                "bccRecipients": fmt(bcc_recipients)
+            },
+            "saveToSentItems": True          # lo verás en “Enviados”
+        }
+
+        r = requests.post(url, headers=headers, json=payload)
+
+        if r.status_code == 202:             # 202 ≙ aceptado y en cola de envío
+            return {"status": "sent"}
+        else:
+            print("❌ Error al enviar:", r.status_code, r.text)
+            return {"error": r.json()}
+
+"""
+Agregar la politica para meetings 
+
+New-DistributionGroup `
+>>   -Name "GraphAPIAccessMailEnabled" `
+>>   -DisplayName "Graph API Access Group" `
+>>   -PrimarySmtpAddress "graphapiaccess@socio675.onmicrosoft.com" `
+>>   -Type "Security"
+
+Add-DistributionGroupMember `
+>>   -Identity "GraphAPIAccessMailEnabled" `
+>>   -Member it@socio.it.com
+
+New-ApplicationAccessPolicy `
+>>   -AppId "e05af3ec-4d85-4471-b639-059af3044b5d" `
+>>   -PolicyScopeGroupId "graphapiaccess@socio675.onmicrosoft.com" `
+>>   -AccessRight RestrictAccess
+
+Get-ApplicationAccessPolicy
+
+Get-DistributionGroupMember -Identity "GraphAPIAccessMailEnabled"
+"""
