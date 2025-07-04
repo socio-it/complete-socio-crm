@@ -16,6 +16,8 @@ import BackendService from 'api_services/backendService';
 import { use } from 'react';
 
 const ChatbotSection = () => {
+
+  const [isLoading, setIsLoading] = useState(false);
   const [product, setProduct] = useState('');
   const [industry, setIndustry] = useState('');
   const [functionality, setFunctionality] = useState('');
@@ -63,6 +65,7 @@ const ChatbotSection = () => {
   }, []);*/
 
   const handleSubmit = async (e) => {
+    setIsLoading(true);
     e.preventDefault();
     const thread_id = sessionStorage.getItem('threadId');
     const formData = {
@@ -93,8 +96,10 @@ const ChatbotSection = () => {
         formData
       );
       setProposal(data.proposal);
+      setIsLoading(false);
     } catch (error) {
       console.error('Error starting chatbot:', error);
+      setIsLoading(false);
     }
   };
 
@@ -118,7 +123,7 @@ const ChatbotSection = () => {
                     label="Producto"
                     onChange={(e) => setArea(e.target.value)}
                   >
-                    {['Recursos Humanos', 'TI', 'Legal', 'Cumplimiento', 'Ventas', 'Logistica', 'Finanzas', 'Mejora Continua'].map((option) => (
+                    {['Recursos Humanos', 'TI', 'Legal', 'Cumplimiento', 'Ventas', 'Logistica', 'Finanzas', 'Mejora Continua', "Operativa"].map((option) => (
                       <MenuItem key={option} value={option}>
                         {option}
                       </MenuItem>
@@ -135,7 +140,7 @@ const ChatbotSection = () => {
                     label="Producto"
                     onChange={(e) => setProduct(e.target.value)}
                   >
-                    {['crm', 'erp', 'ecommerce', 'chatbot', 'integración', 'automatización'].map((option) => (
+                    {["CRM","ERP","E-commerce","Chatbot","Integración","Automatización","Business Intelligence & Analytics","Data Warehouse","Robotic Process Automation (RPA)","Gestión de APIs y Microservicios"].map((option) => (
                       <MenuItem key={option} value={option}>
                         {option}
                       </MenuItem>
@@ -152,7 +157,7 @@ const ChatbotSection = () => {
                     label="Industria"
                     onChange={(e) => setIndustry(e.target.value)}
                   >
-                    {['retail', 'salud', 'finanzas', 'educación', 'otro'].map((option) => (
+                    {["Retail","Salud","Finanzas","Educación","Manufactura","Telecomunicaciones","Energía y Utilities","Transporte y Logística","Automotriz","Construcción e Infraestructura","Turismo y Hospitalidad","Medios y Entretenimiento","Agricultura y Agroindustria","Bienes Raíces","Farmacéutica y Biotecnología","Alimentación y Bebidas","Petróleo y Gas","Seguros","Tecnología e Internet","Gobierno y Sector Público"].map((option) => (
                       <MenuItem key={option} value={option}>
                         {option}
                       </MenuItem>
@@ -169,12 +174,7 @@ const ChatbotSection = () => {
                     label="Funcionalidad"
                     onChange={(e) => setFunctionality(e.target.value)}
                   >
-                    {[
-                      'increase_sales',
-                      'improve_customer_retention',
-                      'optimize_processes',
-                      'reduce_costs'
-                    ].map((option) => (
+                    {["Aumentar Ventas","Mejorar Retención de Clientes","Optimizar Procesos","Reducir Costos","Generación De Leads","Personalización De Marketing","Mejorar Experiencia Del Cliente","Predicción De Demanda","Gestión De Inventario","Automatización De Atención Al Cliente","Análisis De Sentimiento","Gestión De Riesgos","Automatización De Reporting","Detección De Anomalías","Optimización De Cadena De Suministro"].map((option) => (
                       <MenuItem key={option} value={option}>
                         {option}
                       </MenuItem>
@@ -228,7 +228,7 @@ const ChatbotSection = () => {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Chatbot embedded firstMessage={firstMessage} proposal={proposal}/>
+            <Chatbot embedded firstMessage={firstMessage} proposal={proposal} isLoading={isLoading}/>
           </Grid>
         </Grid>
       </Container>

@@ -7,7 +7,7 @@ import {
   Typography,
   Fab,
   Divider,
-  CircularProgress
+  Grid
 } from '@mui/material';
 
 import CloseIcon from '@mui/icons-material/Close';
@@ -25,7 +25,7 @@ const float = keyframes`
 `;
 
 /* -------------------- BLOQUE DE “ESPERANDO…” -------------------- */
-const WaitingForForm = () => (
+const WaitingForForm = ({isLoading}) => (
   <Box
     sx={{
       height: '100%',
@@ -37,29 +37,40 @@ const WaitingForForm = () => (
       textAlign: 'center'
     }}
   >
-    {/* Avatar flotando */}
-    <Box
-      sx={{
-        width: 150,
-        height: 150,
-        mb: 2,
-        animation: `${float} 5s ease-in-out infinite`
-      }}
-    >
-      <Image
-        src="/ai-agent.png"   // ⬅️ Ruta a tu imagen
-        alt="Agente IA"
-        width={150}
-        height={150}
-        priority
-        style={{ objectFit: 'contain' }}
+    {!isLoading ? (
+      <Grid container direction="column" alignItems="center">
+      {/* Avatar flotando */}
+      <Box
+        sx={{
+          width: 150,
+          height: 150,
+          mb: 2,
+          animation: `${float} 5s ease-in-out infinite`
+        }}
+      >
+        <Image
+          src="/ai-agent.png"   // ⬅️ Ruta a tu imagen
+          alt="Agente IA"
+          width={150}
+          height={150}
+          priority
+          style={{ objectFit: 'contain' }}
+        />
+      </Box>
+      {/* Mensaje */}
+      <Typography variant="caption" sx={{ opacity: 0.8 }}>
+        Esperando información del formulario...
+      </Typography>
+    </Grid>) : (
+      <video
+        src="/videos/building_solutions.mp4"
+        autoPlay
+        muted
+        loop
+        style={{ width: '100%', height: 'auto', borderRadius: '25px' }}
       />
-    </Box>
-
-    {/* Mensaje */}
-    <Typography variant="caption" sx={{ opacity: 0.8 }}>
-      Esperando información del formulario...
-    </Typography>
+    )
+    }
   </Box>
 );
 
@@ -75,7 +86,7 @@ function generateReply() {
   return replies[Math.floor(Math.random() * replies.length)];
 }
 
-const Chatbot = ({ embedded = false, firstMessage, proposal }) => {
+const Chatbot = ({ embedded = false, firstMessage, proposal, isLoading }) => {
   const [open, setOpen] = useState(embedded);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -174,8 +185,8 @@ const Chatbot = ({ embedded = false, firstMessage, proposal }) => {
 
       {/* Mensajes */}
       <Box sx={{ flexGrow: 1, p: 2, overflowY: 'auto' }}>
-        {!initialLoaded ? (
-          <WaitingForForm /> 
+        {!proposal ? ( //initialLoaded
+          <WaitingForForm isLoading={isLoading}/> 
         ) : (
           <>
             {messages.map((msg, idx) => (
