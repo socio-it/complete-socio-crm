@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'apps.accounts',
     'apps.lite_store',
     'apps.contacts',
+    'apps.manage_email',
 ]
 """
 AUTH_ADFS = {

@@ -1,0 +1,15 @@
+# Dockerfile.celery
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# 1) Copia e instala dependencias completas
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 2) Copia la estructura mínima de tu proyecto
+COPY core/ ./core/
+COPY apps/ ./apps/
+# (ajusta rutas según tu repo)
+
+# El comando real lo define docker-compose; aquí dejamos el ENTRYPOINT vacío

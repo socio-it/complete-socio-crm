@@ -3,7 +3,7 @@ from django.urls import path, include
 
 from core import views
 from apps.lite_store import urls as lite_store_views
-
+from apps.manage_email import urls as manage_email_url
 urlpatterns = [
     path('admin/', admin.site.urls),
     
@@ -16,4 +16,5 @@ urlpatterns = [
 
     path("api/lite_store/", include(lite_store_views.urls)),
     
+    path("api/get_email/", include(manage_email_url.urls)),
 ]
