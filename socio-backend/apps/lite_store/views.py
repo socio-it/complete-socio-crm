@@ -379,20 +379,17 @@ f84e4e30-5070-4d6d-bf8b-664e03bdf995/546-0
         client = MicrosoftClient()
         user_guid = client.get_user_info("it@socio.it.com")
         events = client.get_interviews(user_guid)
-        print(f"Events found: {len(events)}")
         for event in events:
             join_url = event.get("onlineMeeting", "")
             join_url = join_url.get("joinUrl", "")
-            print(f"Join URL: {join_url}",event.get('subject'),user_guid)
             meetings = client.get_online_meetings(join_url, user_guid)
-            print(meetings)
             if meetings:
-                print(f"Meetings found: {len(meetings)}")
+                #print(f"Meetings found: {len(meetings)}")
                 for meeting in meetings:
                     meeting_id = meeting.get("id", "")
                     if meeting_id:
                         transcription = client.get_transcription(meeting_id, user_guid)
-                        print(f"Transcription for meeting {meeting_id}: {transcription}")
+                        #print(f"Transcription for meeting {meeting_id}: {transcription}")
                         if transcription:
                             for transcript in transcription:
                                 transcript_it = transcript.get("id", "")
@@ -409,26 +406,26 @@ f84e4e30-5070-4d6d-bf8b-664e03bdf995/546-0
             "accept": "application/json"
         }
 
-        response = requests.post(url, params=params, headers=headers, timeout=200)
-        response.raise_for_status()  
+        #response = requests.post(url, params=params, headers=headers, timeout=200)
+        #response.raise_for_status()  
 
-        response_data = response.json() 
+        #response_data = response.json() 
         
-        meeting, created = OnlineMeetingsAnalyzed.objects.get_or_create(
-            meeting_id=4,
-            defaults={
-                "subject": "New reunion",
-                "created_by": "brian restrepo",
-                "summary": response_data.get('summary', ''),
-            }
-        )
+        #meeting, created = OnlineMeetingsAnalyzed.objects.get_or_create(
+        #    meeting_id=4,
+        #    defaults={
+        #        "subject": "New reunion",
+        #        "created_by": "brian restrepo",
+        #        "summary": response_data.get('summary', ''),
+        #    }
+        #)
 
-        if created:
-            for task in response_data.get('tasks', []):
-                OnlineMeetingTasks.objects.create(
-                    meeting=meeting,
-                    task_description=task
-                )
+        #if created:
+        #    for task in response_data.get('tasks', []):
+        #        OnlineMeetingTasks.objects.create(
+        #            meeting=meeting,
+        #            task_description=task
+        #        )
         """"""
         return JsonResponse({"meetings": 'meetings were created'}, status=200)
     
@@ -470,6 +467,7 @@ class MakeProblemAnalysis:
         headers = {
             "accept": "application/json"
         }
+
         ai_agent_response = requests.post(url, json=data, headers=headers, timeout=60)
         response = ai_agent_response.json()
         ConsultantResponses.objects.create(

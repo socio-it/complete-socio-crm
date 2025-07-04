@@ -1,0 +1,31 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.celery
+    command: celery -A core.celery_app worker --loglevel=info
+    environment:
+      - CELERY_BROKER_URL=redis://host.docker.internal:6379/0
+      - CELERY_RESULT_BACKEND=redis://host.docker.internal:6379/1
+      - DJANGO_SETTINGS_MODULE=core.settings
+      - SECRET_KEY='django-insecure-jzlt8ocdj*m8d=#q&0b&s-wx5!wfzfbv+1@c$ir)&ja3m8rvdb'
+    depends_on:
+      - redis
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile.celery
+    command: celery -A core.celery_app beat --loglevel=info
+    environment:
+      - CELERY_BROKER_URL=redis://host.docker.internal:6379/0
+      - CELERY_RESULT_BACKEND=redis://host.docker.internal:6379/1
+      - DJANGO_SETTINGS_MODULE=core.settings
+      - SECRET_KEY='django-insecure-jzlt8ocdj*m8d=#q&0b&s-wx5!wfzfbv+1@c$ir)&ja3m8rvdb'
+    depends_on:
+      - redis

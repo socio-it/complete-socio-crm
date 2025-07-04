@@ -1,6 +1,7 @@
 
 import os
 from pathlib import Path
+from datetime import timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -221,3 +222,19 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.UsersByTenant'
 
 AGENTS_API_URL = os.getenv('AGENTS_API_URL')
+
+# Celery
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/1')
+
+CELERY_BEAT_SCHEDULE = {
+    'imprimir-hola-mundo-cada-segundo': {
+        'task': 'apps.lite_store.tasks.imprimir_hola_mundo',
+        'schedule': timedelta(seconds=1),
+        'args': (),
+    },
+}
+
+# Opcional: zona horaria
+CELERY_TIMEZONE = 'America/Bogota'
+CELERY_ENABLE_UTC = True    

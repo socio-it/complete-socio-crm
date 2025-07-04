@@ -20,6 +20,7 @@ def get_microsoft_access_token(client_id: str, client_secret: str, tenant_id: st
     response = requests.post(url, data=data)
     
     if response.status_code == 200:
+        print(response.json().get("access_token"))
         return response.json().get("access_token")
     else:
         print(Exception(f"Error obtaining access token: {response.text}"))
@@ -119,11 +120,12 @@ class MicrosoftClient:
             "Authorization": f"Bearer {self.transcription_access_token}",
             "Content-Type": "application/json"
         }
-        print(user_id, join_url)
+        
         url_ = f"{self.base_url}/users/c4b17935-09ab-4df1-9611-9e97677f1bac/onlineMeetings"
         filter = urllib.parse.quote(f"joinWebUrl eq '{join_url}'")
         url = f"{url_}?$filter={filter}"
         response = requests.get(url, headers=headers)
+        
         if response.status_code == 200:
             return response.json().get("value", [])
         else:
