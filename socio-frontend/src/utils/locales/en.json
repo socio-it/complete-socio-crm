@@ -279,5 +279,9 @@
   "login-password-required": "Password is required",
 
   "agents": "AI Agents",
+  "sales": "Sales",
+  "email-agent-base": "Email Agent Base",
+  "settings": "Settings",
+  "partners-rol": "Partners Rol",
   "outlook-tasks-agent": "Outlook Tasks"
 }

@@ -58,6 +58,46 @@ const BackendService = {
       }
     });
   },
+  // -------------------------------
+  // Partner Methods
+  // -------------------------------
+  getPartners: (accessToken) => {
+    return axios.get(API + `api/get_partners`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+  },
+  getPartner: (accessToken) => {
+    return axios.get(API + `api/get_partner/${id}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+  },
+  putPartner: (accessToken,data) => {
+    return axios.put(API + `api/put_partner/${id}`,
+      data ,{
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+  },
+  deletePartner: (accessToken) => {
+    return axios.get(API + `api/delete_partner/${id}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+  },
+  postPartner: (accessToken, data) => {
+    return axios.post(API + 'api/post_partner/',
+      data ,{
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+  },
 };
 
 export default BackendService;

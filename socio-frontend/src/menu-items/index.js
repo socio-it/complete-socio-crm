@@ -9,11 +9,12 @@ import utilities from './utilities';
 import support from './support';
 import other from './other';
 import agents from './ai-agents';
+import sales from './sales';
 
 // ==============================|| MENU ITEMS ||============================== //
 
 const menuItems = {
-  items: [ dashboard, agents, application, forms, elements, samplePage, pages, utilities, support, other]
+  items: [ dashboard, sales, agents, application, forms, elements, samplePage, pages, utilities, support, other]
 };
 
 export default menuItems;
