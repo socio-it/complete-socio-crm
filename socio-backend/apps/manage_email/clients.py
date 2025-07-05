@@ -66,7 +66,6 @@ class MicrosoftClient:
         endpoint = (
             f"{self.base_url}/users/{user_id}/mailFolders/inbox/messages"
         )
-        print(start_utc,end_utc)
 
         filtro = (
             f"receivedDateTime ge {start_utc.strftime('%Y-%m-%dT%H:%M:%SZ')}"
@@ -95,6 +94,43 @@ class MicrosoftClient:
             url = data.get("@odata.nextLink")
             params = None
         return all_messages
+
+
+    def sync_unique_senders(
+            self,
+            user_id: str,
+            top: int = 50
+    ) -> tuple[set[str], str]:
+
+        endpoint = (
+            f"{self.base_url}/users/{user_id}/mailFolders/inbox/messages"
+        )
+
+        params = {
+            "$select": "subject,from,receivedDateTime,body,bodyPreview",
+            "$orderby": "receivedDateTime desc",
+            "$top": top
+        }
+
+        headers = {
+            "Authorization": f"Bearer {self.access_token}",
+            "Prefer": 'outlook.body-content-type="text"'
+        }
+
+        all_messages = []
+        url = endpoint
+        while url:
+            res = requests.get(url, headers=headers, params=params)
+            res.raise_for_status()
+            data = res.json()
+            all_messages.extend(data.get("value", []))
+            url = data.get("@odata.nextLink")
+            params = None
+        return all_messages
+
+
+#cheazil beani
+
 
 """
 POLITICA QUE EXCLUIRA A LOS DEMAS USUARIOS
