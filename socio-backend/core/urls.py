@@ -16,5 +16,5 @@ urlpatterns = [
 
     path("api/lite_store/", include(lite_store_views.urls)),
     
-    path("api/get_email/", include(manage_email_url.urls)),
+    path("api/email/", include(manage_email_url.urls)),
 ]
